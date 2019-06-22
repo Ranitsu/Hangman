@@ -16,14 +16,12 @@ echo "<br><br>";
 
 if (isset($_POST["new_game"])) {
     $chars = array();
-    $wrong_chars = array();
     $random_entry = Get_random_entry();
     $entry = $random_entry[0];
     $category = $random_entry[1];
     $no_found_chars = array();
 } else {
     $chars = json_decode(htmlspecialchars_decode($_POST["chars"]));
-    $wrong_chars = json_decode(htmlspecialchars_decode($_POST["wrong_chars"]));
     $entry = $_POST['entry'];
     $category = $_POST['category'];
     $no_found_chars = json_decode((htmlspecialchars_decode($_POST['no_found_chars'])));
