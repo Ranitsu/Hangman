@@ -2,7 +2,6 @@
 <head>
     <title>Wisielec</title>
     <link rel="stylesheet" type="text/css" href="style.css">
-    <!-- <script src="scripts.js"></script> -->
 </head>
 <body>
 
@@ -65,7 +64,6 @@ if ($found_char === false) {
     if (count($no_found_chars) > $lives)
         echo "PRZEGRANA<br><br>";
 }
-echo count($no_found_chars);
 DrawHangman(count($no_found_chars));
 
 foreach ($no_found_chars as $no_found_char) {
@@ -86,7 +84,7 @@ function in_array_i($char, $array) {
 function Get_random_entry() {
     $servername = "localhost";
     $username = "root";
-    $password = "Budap3st";
+    $password = "xxx";
     $database = "Wisielec";
     
     $mysqli = new mysqli($servername, $username, $password, $database);
@@ -94,19 +92,15 @@ function Get_random_entry() {
     if ($mysqli->connect_errno) {
         echo "Failed to connect to MySQL: " . $mysqli->connect_error;
     }
-    
-    // echo "Connected successfully <br>";
-    
+        
     $sql = 'SELECT id, name, category FROM entry';
     
-    // echo $sql . "<br>";
     $entries = array();
     $result = $mysqli->query($sql);
     
     if ($result->num_rows > 0) {
         while($row = $result->fetch_assoc()) {
             $entries[] = ["id" => $row["id"], "name" => $row["name"], "category" => $row["category"]];
-            // echo "id: " . $row["id"]. " - Name: " . $row["name"]. ", Category: " . $row["category"]. "<br>";
         }
     } else {
         echo "0 results";
@@ -114,8 +108,6 @@ function Get_random_entry() {
     $mysqli->close();
 
     $random_entry_key = array_rand($entries);
-
-    // print_r($entries[$random_entry_key]);
 
     $entry = $entries[$random_entry_key]['name'];
     $category = $entries[$random_entry_key]['category'];
@@ -181,10 +173,3 @@ function DrawHangman($step) {
 
 </body>
 </html>
-
-<!-- _______
-| /   |
-|/    O
-|    /I\    
-|     A
-| -->
