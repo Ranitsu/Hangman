@@ -4,7 +4,7 @@
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-
+<div id="main">
 <?php
 if (isset($_POST["char"])) {
     $char_post = $_POST["char"];
@@ -12,9 +12,7 @@ if (isset($_POST["char"])) {
     $char_post = "";
 }
 
-echo "<br><br>";
-
-if (isset($_POST["new_game"])) {
+if ((!(isset($_POST["new_game"])) && !(isset($_POST["chars"]))) || isset($_POST["new_game"])) {
     $chars = array();
     $random_entry = Get_random_entry();
     $entry = $random_entry[0];
@@ -31,13 +29,17 @@ $lives = 10;
 $char_array = str_split($entry);
 $entry_count = strlen($entry);
 
-echo "<br><br><br>";
-$chars[] = $char_post;
+echo "<br>";
+if($char_post != "")
+    $chars[] = $char_post;
 
+
+echo "<div id='category'>";
 echo $category . "<br><br>";
+echo "</div>";
 
 $found_char = false;
-
+echo "<div id='entry'>";
 foreach ($char_array as $char) {
     if (stripos($char_post, $char) !== false) {
         echo $char;
@@ -53,22 +55,38 @@ foreach ($char_array as $char) {
     echo " ";
 }
 
-echo "<br><br>";
-echo "<br><br><br>Nie trafione: <br>";
+echo "</div>";
+if (!(empty($chars)) && !(empty($char_array))) {
+    if (CheckWin($chars, $char_array)) {
+        echo "<script type='text/javascript'>
+        window.onload = function() {
+        alert('Wygrałeś!');
+        };
+        </script>";
+    }
+}
 
-if ($found_char === false) {
+echo "<div id='not_found'><b>Nie trafione: </b><br>";
+
+if (!(in_array_i($char_post, $char_array)) && $char_post != "")
     $no_found_chars[] = $char_post;
 
-    if (count($no_found_chars) > $lives)
-        echo "PRZEGRANA<br><br>";
-}
-DrawHangman(count($no_found_chars));
-
+if (count($no_found_chars) > $lives)
+    echo "<script type='text/javascript'>
+    window.onload = function() {
+    alert('Przegrałeś!');
+    };
+    </script>";
 foreach ($no_found_chars as $no_found_char) {
     if ($no_found_char !== "")
         echo $no_found_char . ", ";
 }
 
+
+echo "</div>";
+echo "<div id='hangman'>";
+DrawHangman((count($no_found_chars)));
+echo "</div><br>";
 
 function in_array_i($char, $array) {
     foreach ($array as $value) {
@@ -81,9 +99,9 @@ function in_array_i($char, $array) {
 
 function Get_random_entry() {
     $servername = "localhost";
-    $username = "root";
+    $username = "xxx";
     $password = "xxx";
-    $database = "Wisielec";
+    $database = "xxx";
     
     $mysqli = new mysqli($servername, $username, $password, $database);
     
@@ -91,7 +109,7 @@ function Get_random_entry() {
         echo "Failed to connect to MySQL: " . $mysqli->connect_error;
     }
         
-    $sql = 'SELECT id, name, category FROM entry';
+    $sql = 'SELECT id, name, category FROM entries';
     
     $entries = array();
     $result = $mysqli->query($sql);
@@ -115,6 +133,9 @@ function Get_random_entry() {
 
 function DrawHangman($step) {
     switch ($step) {
+        case 0: 
+            echo "";
+            break;
         case 1:
             echo "<br>|<br>|<br>|<br>|<br>|";
             break;
@@ -145,29 +166,70 @@ function DrawHangman($step) {
         case 10:
             echo "______<br>| /&nbsp&nbsp&nbsp|<br>|/&nbsp&nbsp&nbspO<br>|&nbsp&nbsp&nbsp&nbsp/|\<br>|&nbsp&nbsp&nbsp&nbsp/\<br>|";
             break;
+        default:
+            echo "______<br>| /&nbsp&nbsp&nbsp|<br>|/&nbsp&nbsp&nbspO<br>|&nbsp&nbsp&nbsp&nbsp/|\<br>|&nbsp&nbsp&nbsp&nbsp/\<br>|";
+            break;
+    }
+}
+
+function CheckWin($send_chars, $entry_chars) {
+    $uniq_send_chars = array();
+    $uniq_entry_chars = array();
+
+    if (is_array($send_chars) && is_array($entry_chars)) {
+
+        foreach ($entry_chars as $char) {
+            if (!(in_array_i($char, $uniq_entry_chars)))
+                $uniq_entry_chars[] = $char;
+        }
+
+        foreach ($send_chars as $char) {
+            if (!(in_array_i($char, $uniq_send_chars)))
+                $uniq_send_chars[] = $char;
+        }
+
+        $found_chars = array();
+
+        foreach ($uniq_send_chars as $char) {
+            if (in_array_i($char, $uniq_entry_chars) && !(in_array_i($char, $found_chars))) {
+                $found_chars[] = $char;
+            }
+        }
+
+        $uec_count = count($uniq_entry_chars);
+        $ufc_count = count($found_chars);
+
+        if ($ufc_count > 1 && $uec_count === $ufc_count) {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
     }
 }
 ?>
+<div id='form'><br>
+    <form action="index.php"  method="post" >
+    <br>
+        Podaj litere: 
+        <input type="text" name="char" maxlength="1" size="1">
+        <br><br>
+        <?php
+        echo '<input type="hidden" name="chars" value="'.htmlspecialchars(json_encode($chars)).'">';
+        echo '<input type="hidden" name="no_found_chars" value="'.htmlspecialchars(json_encode($no_found_chars)).'">';
+        echo '<input type="hidden" name="entry" value="'.$entry.'">';
+        echo '<input type="hidden" name="category" value="'.$category.'">';
+        ?>
+        <input type="submit" name="submit" value="Wyślij">
+    </form>
 
-
-<form action="index.php"  method="post" >
-    <br><br>
-    Podaj litere: 
-    <input type="text" name="char" maxlength="1" size="1">
-    <br><br>
-    <?php
-    echo '<input type="hidden" name="chars" value="'.htmlspecialchars(json_encode($chars)).'">';
-    echo '<input type="hidden" name="no_found_chars" value="'.htmlspecialchars(json_encode($no_found_chars)).'">';
-    echo '<input type="hidden" name="entry" value="'.$entry.'">';
-    echo '<input type="hidden" name="category" value="'.$category.'">';
-    ?>
-    <input type="submit" name="submit" value="Wyślij">
-</form>
-
-<form action="index.php"  method="post">
-    <input type="hidden" name="new_game" value="new_game">
-    <input type="submit" name="new_game" value="Nowe hasło">
-</form>
+    <form action="index.php"  method="post">
+        <input type="hidden" name="new_game" value="new_game">
+        <input type="submit" name="new_game" value="Nowe hasło">
+    </form>
+</div>
+</div>
 
 </body>
 </html>
